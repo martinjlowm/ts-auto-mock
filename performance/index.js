@@ -68,3 +68,9 @@ function runTestFromConfig(config) {
       Promise.resolve([])
     );
 }
+
+// colours for each feature
+
+// show dots for each point
+
+// show date in the legend

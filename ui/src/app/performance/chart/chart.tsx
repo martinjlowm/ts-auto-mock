@@ -1,17 +1,12 @@
 import React from 'react';
-import {
-  Bar, BarChart, Legend, Tooltip, XAxis, YAxis,
-} from 'recharts';
-import { PerformanceData } from '../performanceService/IPerformanceService';
+import { Legend, Line, LineChart, Tooltip, XAxis, YAxis, } from 'recharts';
+import { PerformanceGraphData } from '../performance';
+import { PerformanceData } from '../performanceService/performanceService';
 
 export interface PerformanceChartProps {
-  data: PerformanceData[];
+  data: PerformanceGraphData[];
 }
 
-interface PerformanceChartData {
-  name: string[];
-  total_time: string;
-}
 export function PerformanceChart(props: PerformanceChartProps): JSX.Element {
   const data: PerformanceChartData[] = props.data.map((feature: PerformanceData) => {
     return {

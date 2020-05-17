@@ -1,4 +1,6 @@
-import { createMock } from 'ts-auto-mock';
+import { createMock} from 'ts-auto-mock';
+import { ExtensionHandler , On } from 'ts-auto-mock/extension';
+
 
 /*
  USE THIS FILE ONLY FOR TESTING NEW IMPLEMENTATION
@@ -8,11 +10,13 @@ import { createMock } from 'ts-auto-mock';
 
  */
 
-it('should work', () => {
-  interface A {
-    a: string;
-  }
+describe('On', () => {
+  it('should throw when is used without a mock', () => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    expect(() => On({ prop: () => {} })).toThrow();
+  });
 
-  const type: A = createMock<A>();
-  expect(type).toBeDefined();
+  it('should return an ExtensionHandler when used with a mock', () => {
+    expect(On(createMock<{prop: () => void}>())).toEqual(jasmine.any(ExtensionHandler));
+  });
 });

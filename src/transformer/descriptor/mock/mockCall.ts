@@ -28,8 +28,8 @@ export function GetMockCall(properties: PropertyAssignments, signature: ts.Expre
     statements.push(addPropertiesToUniqueVariable);
   }
 
-  const addMockMarkerToUniqueVariable: ts.ExpressionStatement = AssignMockMarkerPropertyTo(mockObjectReturnValueName);
-  statements.push(addMockMarkerToUniqueVariable);
+  // const addMockMarkerToUniqueVariable: ts.ExpressionStatement = AssignMockMarkerPropertyTo(mockObjectReturnValueName);
+  // statements.push(addMockMarkerToUniqueVariable);
 
   statements.push(ts.createReturn(mockObjectReturnValueName));
 

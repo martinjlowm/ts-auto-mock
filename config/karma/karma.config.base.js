@@ -15,6 +15,8 @@ module.exports = function(config, url) {
             stats: 'errors-only'
         },
         files: [
+          '../../dist/commons.js',
+          '../../dist/extension/index~repository/index.js',
             {
                 pattern: url,
                 watched: false

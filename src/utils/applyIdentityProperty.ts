@@ -1,6 +1,8 @@
+import { Marker } from '../extension/marker/marker';
+
 // eslint-disable-next-line
 type Function<K> = (...args: any[]) => K;
-type IdentityFlavored<K> = K & { __ident?: string };
+type IdentityFlavored<K> = K & { [key in symbol]: string };
 
 export function applyIdentityProperty<K extends object, T extends Function<K>>(target: T, identity: string): T {
   return new Proxy(
@@ -17,13 +19,14 @@ export function applyIdentityProperty<K extends object, T extends Function<K>>(t
           return t;
         }
 
-        if (typeof t.__ident !== 'undefined') {
+        // eslint-disable-next-line
+        const marker: unique symbol = Marker.instance.get() as any;
+
+        if (typeof t[marker] !== 'undefined') {
           return t;
         }
 
-        Object.defineProperty(t, '__ident', {
-          enumerable: false,
-          writable: false,
+        Object.defineProperty(t, marker, {
           value: identity,
         });
 

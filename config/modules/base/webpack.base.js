@@ -1,36 +1,36 @@
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = (options) => {
-    const tsConfigFile = options.tsConfigFile;
+  const tsConfigFile = options.tsConfigFile;
 
-    return {
-        mode: "production",
-        resolve: {
-            extensions: ['.ts', '.js']
+  return {
+    mode: "development",
+    resolve: {
+      extensions: ['.ts', '.js']
+    },
+    module: {
+      rules: [
+        {
+          test: /\.ts$/,
+          enforce: 'pre',
+          loader: 'eslint-loader'
         },
-        module: {
-            rules: [
-                {
-                    test: /\.ts$/,
-                    enforce: 'pre',
-                    loader: 'eslint-loader'
-                },
-                {
-                    test: /\.ts$/,
-                    loader: 'ts-loader',
-                    options: {
-                        configFile: tsConfigFile,
-                        onlyCompileBundledFiles: true
-                    }
-                }
-            ]
-        },
-        output: {
-            libraryTarget: "commonjs",
-            filename: "[name].js"
-        },
-        plugins: [
-            new CleanWebpackPlugin()
-        ]
-    }
+        {
+          test: /\.ts$/,
+          loader: 'ts-loader',
+          options: {
+            configFile: tsConfigFile,
+            onlyCompileBundledFiles: true
+          }
+        }
+      ]
+    },
+    output: {
+      libraryTarget: "commonjs",
+      filename: "[name].js"
+    },
+    plugins: [
+      new CleanWebpackPlugin(),
+    ]
+  };
 };

@@ -1,4 +1,5 @@
-import { applyIdentityProperty } from '../../../utils/applyIdentityProperty';
+import { Repository } from '../../../repository/repository';
+
 import { functionMethod } from './functionMethod';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Method = (name: string, value: any) => () => any;
@@ -35,7 +36,7 @@ export class Provider {
   }
 
   public provideMethodWithDeferredValue(method: MethodWithDeferredValue): void {
-    this._method = method;
+    Repository.instance.registerWrapper(method);
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,6 +51,6 @@ export class Provider {
     // proxy every single time this function is called. It should probably mock
     // based on name if that ends up being a string representing the type
     // signature.
-    return applyIdentityProperty(this._method, name)(name, value);
+    return this._method(name, value);
   }
 }

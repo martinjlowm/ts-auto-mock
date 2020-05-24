@@ -24,6 +24,14 @@ export function CreateMockFactory(typeReferenceNode: ts.TypeReferenceNode, scope
   return getDeclarationMockFactoryCall(declaration, typeReferenceNode, scope);
 }
 
+export function CreateMockMethod(node: ts.FunctionLike | ts.TypeLiteralNode, scope: Scope): ts.Expression {
+  if (!MockDefiner.instance.hasMockForDeclaration(node)) {
+    MockDefiner.instance.createMockFactory(node);
+  }
+
+  return getDeclarationMockFactoryCall(node, undefined, scope);
+}
+
 export function GetMockFactoryCallIntersection(intersection: ts.IntersectionTypeNode, scope: Scope): ts.Expression {
   const genericDeclaration: IGenericDeclaration = GenericDeclaration(scope);
 
@@ -74,7 +82,7 @@ export function GetMockFactoryCallForThis(mockKey: string): ts.Expression {
   );
 }
 
-function getDeclarationMockFactoryCall(declaration: ts.Declaration, typeReferenceNode: ts.TypeReferenceNode, scope: Scope): ts.Expression {
+function getDeclarationMockFactoryCall(declaration: ts.Declaration, typeReferenceNode: ts.TypeReferenceNode | undefined, scope: Scope): ts.Expression {
   const declarationKey: string | undefined = MockDefiner.instance.getDeclarationKeyMap(declaration);
 
   if (!declarationKey) {
@@ -84,7 +92,9 @@ function getDeclarationMockFactoryCall(declaration: ts.Declaration, typeReferenc
   const mockFactoryCall: ts.Expression = MockDefiner.instance.getMockFactoryByKey(declarationKey);
   const genericDeclaration: IGenericDeclaration = GenericDeclaration(scope);
 
-  genericDeclaration.addFromTypeReferenceNode(typeReferenceNode, declarationKey);
+  if (typeReferenceNode) {
+    genericDeclaration.addFromTypeReferenceNode(typeReferenceNode, declarationKey);
+  }
 
   addFromDeclarationExtensions(declaration as GenericDeclarationSupported, declarationKey, genericDeclaration);
 

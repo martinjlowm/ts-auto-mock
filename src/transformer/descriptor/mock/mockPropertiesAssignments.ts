@@ -16,7 +16,8 @@ export interface PropertyAssignments {
 export function GetMockPropertiesAssignments(properties: PropertyLike[], scope: Scope): PropertyAssignments {
   return properties.reduce(
     (acc: PropertyAssignments, member: PropertyLike): PropertyAssignments => {
-      const descriptor: ts.Expression = GetDescriptor(member, scope);
+      const passedDownScope: Scope = member.type && ts.isThisTypeNode(member.type) ? scope : new Scope();
+      const descriptor: ts.Expression = GetDescriptor(member, passedDownScope);
 
       if (descriptor.kind === ts.SyntaxKind.VoidExpression) {
         return acc;

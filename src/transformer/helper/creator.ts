@@ -1,5 +1,6 @@
-import { PropertyName, VariableDeclaration, VariableStatement} from 'typescript';
-import * as ts from 'typescript';
+import assert from 'assert';
+import ts from 'typescript';
+import { MethodSignature, ParameterDeclaration } from './types';
 
 export namespace TypescriptCreator {
   export function createArrowFunction(block: ts.ConciseBody, parameter: ReadonlyArray<ts.ParameterDeclaration> = []): ts.ArrowFunction {
@@ -24,7 +25,7 @@ export namespace TypescriptCreator {
     );
   }
 
-  export function createVariableStatement(declarations: VariableDeclaration[]): VariableStatement {
+  export function createVariableStatement(declarations: ts.VariableDeclaration[]): ts.VariableStatement {
     return ts.createVariableStatement(undefined, declarations);
   }
 
@@ -48,11 +49,11 @@ export namespace TypescriptCreator {
     return createProperty('', undefined);
   }
 
-  export function createProperty(propertyName: string | PropertyName, type: ts.TypeNode | undefined): ts.PropertyDeclaration {
+  export function createProperty(propertyName: string | ts.PropertyName, type: ts.TypeNode | undefined): ts.PropertyDeclaration {
     return ts.createProperty(undefined, undefined, propertyName, undefined, type, undefined);
   }
 
-  export function createPropertySignature(propertyName: string | PropertyName, type: ts.TypeNode): ts.PropertySignature {
+  export function createPropertySignature(propertyName: string | ts.PropertyName, type: ts.TypeNode): ts.PropertySignature {
     return ts.createPropertySignature([], propertyName, undefined, type, undefined);
   }
 
@@ -90,6 +91,55 @@ export namespace TypescriptCreator {
       body,
     );
   }
+
+  function isDefinitiveMethodSignature(signature: ts.MethodSignature): signature is MethodSignature {
+    return !!signature.type;
+  }
+
+  function isDefinitiveParameterDeclaration(parameter: ts.ParameterDeclaration): parameter is ParameterDeclaration {
+    return !!parameter.type;
+  }
+
+  export function createMethodSignature(parameterTypes: Array<ts.TypeNode | undefined> = [], returnType: ts.TypeNode | undefined): MethodSignature {
+    const parameters: ParameterDeclaration[] = parameterTypes
+      .filter((type: ts.TypeNode | undefined): type is ts.TypeNode => !!type)
+      .map((parameterType: ts.TypeNode, i: number) => {
+        // TODO: Merge/move this block with/to typescriptLibs.ts
+        if (ts.isTypeReferenceNode(parameterType)) {
+          const declaration: ts.Declaration = TypescriptHelper.GetDeclarationFromNode(parameterType.typeName);
+          if (IsTypescriptType(declaration)) {
+            parameterType = ts.createFunctionTypeNode(undefined, [], ts.createKeywordTypeNode(ts.SyntaxKind.VoidKeyword));
+          }
+        }
+
+        const parameter: ts.ParameterDeclaration = ts.createParameter(
+          undefined,
+          undefined,
+          undefined,
+          `__${i++}`,
+          undefined,
+          parameterType,
+          undefined,
+        );
+
+        assert(isDefinitiveParameterDeclaration(parameter), 'TODO: Document me');
+
+        return parameter;
+      });
+
+    const signature: ts.MethodSignature = ts.createMethodSignature(
+      undefined,
+      parameters,
+      returnType || ts.createKeywordTypeNode(ts.SyntaxKind.NullKeyword),
+      '',
+      undefined,
+    );
+
+    assert(isDefinitiveMethodSignature(signature), 'TODO: Document me');
+
+    return signature;
+  }
+
 
   export function createVariableDeclaration(variableIdentifier: ts.Identifier, initializer: ts.Expression): ts.VariableDeclaration {
     return ts.createVariableDeclaration(

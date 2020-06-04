@@ -4,12 +4,13 @@ import { SetTypeChecker } from '../typeChecker/typeChecker';
 import { MockDefiner } from '../mockDefiner/mockDefiner';
 import { SetProgram } from '../program/program';
 import { TypescriptHelper } from '../descriptor/helper/helper';
+import { GetIdentityDescriptor } from '../descriptor/identity/identity';
 import {
   CustomFunction,
   isFunctionFromThisLibrary,
 } from '../matcher/matcher';
 
-export type Visitor = (node: ts.CallExpression & { typeArguments: ts.NodeArray<ts.TypeNode> }, declaration: ts.FunctionDeclaration) => ts.Node;
+export type Visitor = (node: ts.CallExpression & { typeArguments: ts.NodeArray<ts.TypeNode> }, declaration: ts.SignatureDeclaration) => ts.Node;
 
 export function baseTransformer(visitor: Visitor, customFunctions: CustomFunction[]): (program: ts.Program, options?: TsAutoMockOptions) => ts.TransformerFactory<ts.SourceFile> {
   return (program: ts.Program, options?: TsAutoMockOptions): ts.TransformerFactory<ts.SourceFile> => {
@@ -47,14 +48,34 @@ function isObjectWithProperty<T extends {}, K extends keyof T>(
   return typeof obj[key] !== 'undefined';
 }
 
+function isMockedByThisLibrary(declaration: ts.Declaration): boolean {
+  return MockDefiner.instance.hasKeyForDeclaration(declaration);
+}
+
 function visitNode(node: ts.Node, visitor: Visitor, customFunctions: CustomFunction[]): ts.Node {
   if (!ts.isCallExpression(node)) {
     return node;
   }
 
   const signature: ts.Signature | undefined = TypescriptHelper.getSignatureOfCallExpression(node);
+  const declaration: ts.Declaration | undefined = signature?.declaration;
 
-  if (!signature || !isFunctionFromThisLibrary(signature, customFunctions)) {
+  if (!declaration || !ts.isFunctionLike(declaration)) {
+    return node;
+  }
+
+
+  if (isMockedByThisLibrary(declaration)) {
+    const parameters: ts.NodeArray<ts.ParameterDeclaration> = declaration.parameters;
+    return ts.updateCall(
+      node,
+      node.expression,
+      [],
+      node.arguments.map((argument: ts.Expression, i: number) => GetIdentityDescriptor(argument, parameters[i])),
+    );
+  }
+
+  if (!isFunctionFromThisLibrary(declaration, customFunctions)) {
     return node;
   }
 
@@ -72,8 +93,6 @@ function visitNode(node: ts.Node, visitor: Visitor, customFunctions: CustomFunct
 
   MockDefiner.instance.setFileNameFromNode(nodeToMock);
   MockDefiner.instance.setTsAutoMockImportIdentifier();
-
-  const declaration: ts.FunctionDeclaration = signature.declaration as ts.FunctionDeclaration;
 
   return visitor(node, declaration);
 }

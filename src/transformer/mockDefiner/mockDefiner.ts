@@ -153,13 +153,17 @@ export class MockDefiner {
   }
 
   public getDeclarationKeyMap(declaration: ts.Declaration): string | undefined {
-    if (!this._declarationCache.has(declaration)) {
+    if (!this.hasKeyForDeclaration(declaration)) {
       const key: string = this._factoryUniqueName.createForDeclaration(declaration as PossibleDeclaration);
 
       this._declarationCache.set(declaration, key);
     }
 
     return this._declarationCache.get(declaration);
+  }
+
+  public hasKeyForDeclaration(declaration: ts.Declaration): boolean {
+    return this._declarationCache.has(declaration);
   }
 
   public storeRegisterMockFor(declaration: ts.Declaration, factory: ts.FunctionExpression): void {
